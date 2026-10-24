@@ -1,235 +1,525 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#050807">
-  <meta name="description" content="ShutcoCompany — цифровые проекты за пределами привычного.">
-  <title>ShutcoCompany — System Interface</title>
-  <link rel="stylesheet" href="./style.css">
-  <script src="./script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050807">
+<title>ShutcoCompany</title>
+
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#050807;color:#e8f1eb;font-family:Arial,sans-serif}
+body.locked{overflow:hidden}
+button,a{font:inherit}
+a{color:inherit;text-decoration:none}
+.green{color:#63ff9a}
+
+/* RETRO PAGE */
+#intro{
+ position:fixed;inset:0;z-index:10;
+ padding:3vh 3vw;background:#008080;color:#000;
+ transition:opacity .7s,visibility .7s;
+}
+#intro.gone{opacity:0;visibility:hidden;pointer-events:none}
+.browser{
+ max-width:900px;height:94vh;margin:auto;
+ display:flex;flex-direction:column;overflow:hidden;
+ border:3px outset #ddd;background:#c0c0c0;
+ font-family:Tahoma,Arial,sans-serif;
+}
+.bar{
+ padding:7px;background:linear-gradient(90deg,#000080,#168bd4);
+ color:white;font-size:12px;font-weight:bold;
+}
+.menu{padding:8px;display:flex;gap:15px;flex-wrap:wrap;font-size:12px}
+.address{padding:5px 9px;font-size:12px;background:#ddd}
+.address span{display:block;background:white;padding:5px;margin-top:4px}
+.oldpage{
+ flex:1;overflow:auto;margin:5px;padding:18px;
+ background:white;text-align:center;
+}
+.oldpage marquee{background:#000080;color:white;padding:8px}
+.oldpage h1{color:#008080;font-family:Georgia,serif;font-size:clamp(30px,7vw,48px)}
+.oldbox{max-width:500px;margin:25px auto;padding:15px;background:#eee;border:3px ridge #ddd}
+.oldbox p{font-size:13px;line-height:1.6}
+.warning{color:#b00000;font-weight:bold}
+.oldlinks{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.oldlinks span{padding:8px;background:#eee;border:2px outset #ddd;font-size:12px}
+.status{padding:6px;font-size:11px;display:flex;justify-content:space-between}
+
+/* ORB: ALWAYS PRESENT IN DOM */
+#orbLayer{
+ position:fixed;inset:0;z-index:9999;
+ pointer-events:none;overflow:hidden;
+}
+#orb{
+ position:absolute;left:50%;top:50%;
+ width:90px;height:90px;border-radius:50%;
+ transform:translate(-50%,-50%) scale(.3);
+ opacity:0;visibility:hidden;
+ cursor:grab;pointer-events:none;touch-action:none;
+ transition:opacity .55s,transform .55s,visibility .55s;
+ filter:drop-shadow(0 0 18px #39ff75);
+}
+#orb.show{
+ opacity:1;visibility:visible;
+ transform:translate(-50%,-50%) scale(1);
+ pointer-events:auto;
+}
+#orb.dragging{cursor:grabbing;transition:none}
+.core{
+ position:absolute;inset:7px;border-radius:50%;
+ background:radial-gradient(circle at 30% 25%,#effff3,#63ff9a 15%,#087a32 52%,#001b0b 78%);
+ box-shadow:inset -10px -8px 20px #001506,0 0 25px #39ff7588;
+ animation:pulse .8s infinite alternate;
+}
+.ring{position:absolute;inset:-5px;border:2px solid #63ff9a;border-radius:50%;animation:spin 4s linear infinite}
+.glitch{
+ position:absolute;left:-15px;right:-15px;height:5px;
+ background:#aaffc0;opacity:.8;animation:glitch .13s steps(2) infinite;
+}
+.g1{top:20px}.g2{top:48px;animation-delay:.07s}
+#hint{
+ position:absolute;left:50%;top:calc(50% + 65px);
+ transform:translateX(-50%);color:#63ff9a;
+ font:11px monospace;letter-spacing:2px;white-space:nowrap;
+ opacity:0;text-shadow:0 0 10px #63ff9a;
+}
+#hint.show{opacity:1;animation:blink 1s steps(2) infinite}
+@keyframes pulse{to{filter:brightness(1.5)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glitch{50%{transform:translateX(9px) skew(10deg);opacity:.3}}
+@keyframes blink{50%{opacity:.35}}
+
+/* BREAKING EFFECT */
+.fragment{
+ position:fixed;z-index:1000;pointer-events:none;
+ animation:fall var(--duration) ease-in forwards;
+}
+@keyframes fall{
+ to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.1);opacity:0}
+}
+#flash{position:fixed;inset:0;z-index:1001;background:white;opacity:0;pointer-events:none}
+#flash.go{animation:flash .3s}
+@keyframes flash{50%{opacity:.8}}
+
+/* MODERN SITE */
+#site{
+ opacity:0;visibility:hidden;pointer-events:none;
+ transition:opacity 1s,visibility 1s;
+ position:relative;overflow:hidden;
+ background:radial-gradient(ellipse at 70% 10%,#123b222a,transparent 40%),#050807;
+}
+#site.show{opacity:1;visibility:visible;pointer-events:auto}
+#network{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+header,main,footer{position:relative;z-index:1}
+header{
+ position:sticky;top:0;display:flex;align-items:center;
+ justify-content:space-between;gap:20px;
+ padding:18px clamp(18px,6vw,90px);
+ background:#050807e8;border-bottom:1px solid #63ff9a22;
+ backdrop-filter:blur(12px);
+}
+.logo{font:bold 13px monospace;letter-spacing:1px}
+nav{display:flex;gap:clamp(12px,3vw,35px)}
+nav a{font:11px monospace;color:#a1afa5;letter-spacing:1px}
+nav a:hover{color:#63ff9a}
+#menu{display:none;background:none;border:1px solid #63ff9a55;color:#63ff9a;padding:8px}
+section{padding:clamp(70px,10vw,130px) clamp(22px,9vw,140px)}
+.hero{min-height:680px;display:flex;align-items:center;position:relative;overflow:hidden}
+.copy{position:relative;z-index:2;max-width:700px}
+.eyebrow{font:11px monospace;letter-spacing:2px;color:#a2b1a6}
+.hero h1{font-size:clamp(50px,10vw,120px);line-height:.9;letter-spacing:-.06em;margin:30px 0}
+.outline{color:transparent;-webkit-text-stroke:1px #d9e8dd}
+.description{max-width:400px;color:#9aa79f;line-height:1.9;font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-block;padding:16px 20px;border:1px solid #63ff9a55;font:11px monospace;letter-spacing:1px}
+.primary{background:#63ff9a;color:#041009;border-color:#63ff9a}
+.primary:hover{background:transparent;color:#63ff9a}
+.visual{
+ position:absolute;right:3%;top:50%;transform:translateY(-50%);
+ width:min(44vw,480px);aspect-ratio:1;display:grid;place-items:center;opacity:.7;
+ background-image:linear-gradient(#63ff9a0b 1px,transparent 1px),linear-gradient(90deg,#63ff9a0b 1px,transparent 1px);
+ background-size:25px 25px;
+ mask-image:radial-gradient(circle,#000 20%,transparent 72%);
+}
+.vring{position:absolute;border:1px solid #63ff9a55;border-radius:50%;aspect-ratio:1;width:90%;animation:spin 30s linear infinite}
+.vring:nth-child(2){width:65%;animation-direction:reverse}
+.vring:nth-child(3){width:40%}
+.vcore{width:22%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 30% 25%,white,#63ff9a 20%,#075b2a 75%);box-shadow:0 0 55px #63ff9a88}
+.label{position:absolute;bottom:22px;left:clamp(22px,9vw,140px);right:clamp(22px,9vw,140px);display:flex;justify-content:space-between;font:10px monospace;color:#7e8c82}
+.content{border-top:1px solid #63ff9a22;display:grid;grid-template-columns:.7fr 2fr;gap:7vw}
+.tag{font:11px monospace;color:#63ff9a;letter-spacing:2px}
+.content h2{font-size:clamp(40px,7vw,78px);line-height:.98;letter-spacing:-.05em;margin:0 0 28px}
+.content p{color:#9aa79f;line-height:1.9;max-width:600px;font-size:14px}
+.data{padding:16px 0;border-bottom:1px solid #63ff9a22;display:flex;justify-content:space-between;gap:12px;font:10px monospace;color:#9aa79f}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:35px}
+.card{border:1px solid #63ff9a2a;padding:20px;min-height:235px;background:#63ff9a06;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#63ff9a}
+.card .symbol{font-size:32px;color:#63ff9a;margin:25px 0}
+.card h3{font-size:17px}
+.card p{font-size:12px}
+.card small{color:#63ff9a;font:9px monospace}
+footer{border-top:1px solid #63ff9a22;padding:28px clamp(22px,6vw,90px);display:flex;flex-wrap:wrap;justify-content:space-between;gap:18px}
+footer p{font-size:10px;color:#849188}
+#notice{position:fixed;bottom:10px;left:10px;right:10px;z-index:2000;background:#101b12;border:1px solid #63ff9a;padding:12px;color:#63ff9a;font:12px monospace;display:none}
+
+@media(max-width:700px){
+ #intro{padding:2vh 2vw}
+ .browser{height:96vh}
+ .oldpage{padding:12px 8px}
+ #orb{width:78px;height:78px}
+ header{padding:14px 18px}
+ #menu{display:block}
+ nav{display:none;position:absolute;top:100%;left:0;right:0;padding:15px 20px;background:#050807;flex-direction:column;gap:22px;border-bottom:1px solid #63ff9a33}
+ nav.open{display:flex}
+ .hero{min-height:720px;align-items:flex-start;padding-top:75px}
+ .visual{width:85vw;top:auto;bottom:50px;right:-8%;transform:none;opacity:.45}
+ .content{grid-template-columns:1fr;gap:25px}
+ .cards{grid-template-columns:1fr}
+ .card{min-height:190px}
+ footer{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
 </head>
+
 <body>
-  <div id="intro" class="intro">
-    <div class="browser">
-      <div class="browser-title">
-        <span>🌐 ShutcoCompany — Internet Explorer</span>
-        <div class="window-controls">
-          <span>_</span><span>□</span><span>×</span>
-        </div>
-      </div>
 
-      <div class="browser-menu">
-        <span>File</span><span>Edit</span><span>View</span>
-        <span>Favorites</span><span>Tools</span><span>Help</span>
-      </div>
+<div id="intro">
+ <div class="browser">
+  <div class="bar">🌐 ShutcoCompany — Internet Explorer</div>
+  <div class="menu">File　 Edit　 View　 Favorites　 Tools　 Help</div>
+  <div class="address">Address <span>https://shutco.company/</span></div>
+  <div class="oldpage">
+   <marquee>WELCOME TO SHUTCOCOMPANY ★ BEST VIEWED WITH INTERNET EXPLORER ★</marquee>
+   <h1>ShutcoCompany</h1>
+   <p>A website from another era.</p>
+   <hr>
+   <div class="oldbox">
+    <h2>Welcome, visitor!</h2>
+    <p>You have entered the digital territory of ShutcoCompany.</p>
+    <p>Something strange is happening here...</p>
+    <p class="warning">⚠ SYSTEM INTEGRITY: UNKNOWN</p>
+    <p>Wait three seconds. Then drag the green anomaly.</p>
+   </div>
+   <div class="oldlinks"><span>Home</span><span>About</span><span>Projects</span><span>Contact</span></div>
+   <p>© ShutcoCompany · An unusual digital experience</p>
+  </div>
+  <div class="status"><span id="state">SYSTEM READY</span><span>Internet zone</span></div>
+ </div>
+</div>
 
-      <div class="address-bar">
-        <span>Address</span>
-        <div>https://shutco.company/</div>
-        <span>Go</span>
-      </div>
+<!-- The orb is in the HTML from the beginning. -->
+<div id="orbLayer">
+ <div id="orb" role="button" aria-label="Drag the green anomaly">
+  <div class="core"></div><div class="ring"></div>
+  <div class="glitch g1"></div><div class="glitch g2"></div>
+ </div>
+ <div id="hint">DRAG THE ANOMALY</div>
+</div>
 
-      <main class="retro-page">
-        <marquee scrollamount="4">
-          WELCOME TO SHUTCOCOMPANY ★ BEST VIEWED WITH INTERNET EXPLORER ★
-        </marquee>
+<audio id="sound" preload="auto">
+ <source src="./2.mp3" type="audio/mpeg">
+</audio>
+<div id="flash"></div>
 
-        <h1>ShutcoCompany</h1>
-        <p class="retro-subtitle">A website from another era.</p>
-        <hr>
+<div id="site" aria-hidden="true">
+ <canvas id="network"></canvas>
+ <header>
+  <a class="logo" href="#home">S<span class="green">/</span> SHUTCOCOMPANY</a>
+  <button id="menu" aria-label="Open menu" aria-expanded="false">☰</button>
+  <nav id="nav">
+   <a href="#home">HOME</a><a href="#about">ABOUT</a>
+   <a href="#projects">PROJECTS</a><a href="#contact">CONTACT</a>
+  </nav>
+ </header>
 
-        <div class="retro-box">
-          <h2>Welcome, visitor!</h2>
-          <p>You have entered the official digital territory of ShutcoCompany.</p>
-          <p>Something strange is happening here...</p>
-          <p class="retro-warning">⚠ SYSTEM INTEGRITY: UNKNOWN</p>
-          <p class="drag-hint">Wait for the anomaly. Then drag it.</p>
-        </div>
-
-        <div class="retro-links">
-          <span>Home</span>
-          <span>About</span>
-          <span>Projects</span>
-          <span>Contact</span>
-        </div>
-
-        <p class="retro-footer">
-          © ShutcoCompany · An unusual digital experience
-        </p>
-      </main>
-
-      <div class="browser-status">
-        <span id="statusText">Done</span>
-        <span>Internet zone</span>
-      </div>
+ <main>
+  <section class="hero" id="home">
+   <div class="copy">
+    <div class="eyebrow">● INDEPENDENT DIGITAL COMPANY</div>
+    <h1>WE BUILD<br><span class="outline">UNUSUAL</span><br><span class="green">THINGS.</span></h1>
+    <p class="description">Ideas, experiments and digital projects. We make the unexpected happen.</p>
+    <div class="actions">
+     <a class="btn primary" href="#projects">EXPLORE PROJECTS ↗</a>
+     <a class="btn" href="#about">WHO WE ARE</a>
     </div>
-  </div>
+   </div>
+   <div class="visual" aria-hidden="true">
+    <div class="vring"></div><div class="vring"></div><div class="vring"></div><div class="vcore"></div>
+   </div>
+   <div class="label"><span>INDEPENDENT BY DESIGN</span><span>SC-001 · ONLINE</span></div>
+  </section>
 
-  <div id="orbLayer" aria-hidden="true">
-    <div id="orb">
-      <div class="orb-glitch orb-glitch-a"></div>
-      <div class="orb-glitch orb-glitch-b"></div>
-      <div class="orb-core"></div>
-      <div class="orb-ring"></div>
+  <section class="content" id="about">
+   <div class="tag">01 / ABOUT</div>
+   <div>
+    <h2>NOT JUST<br><span class="green">ANOTHER</span> COMPANY.</h2>
+    <p>ShutcoCompany is a space for digital experiments, creative ideas and projects that don't follow the usual rules.</p>
+    <p>We explore, build and experiment — one project at a time.</p>
+    <div class="data"><span>STATUS</span><span class="green">ACTIVE</span></div>
+    <div class="data"><span>OPERATING MODE</span><span>EXPERIMENTAL</span></div>
+   </div>
+  </section>
+
+  <section class="content" id="projects">
+   <div class="tag">02 / PROJECTS</div>
+   <div>
+    <h2>SELECTED<br><span class="green">WORK.</span></h2>
+    <div class="cards">
+     <article class="card"><small>PROJECT_001</small><div class="symbol">⌘</div><h3>Digital Experiments</h3><p>Small ideas. Unexpected results.</p><small>ONGOING</small></article>
+     <article class="card"><small>PROJECT_002</small><div class="symbol">◈</div><h3>Creative Systems</h3><p>Interfaces and experiences beyond the ordinary.</p><small>IN DEVELOPMENT</small></article>
+     <article class="card"><small>PROJECT_003</small><div class="symbol">⌬</div><h3>Future Projects</h3><p>The next experiment has yet to be revealed.</p><small>COMING SOON</small></article>
     </div>
-    <div id="orbHint">DRAG THE ANOMALY</div>
-  </div>
+   </div>
+  </section>
 
-  <audio id="destructionSound" preload="auto">
-    <source src="./2.mp3" type="audio/mpeg">
-  </audio>
+  <section class="content" id="contact">
+   <div class="tag">03 / CONTACT</div>
+   <div>
+    <h2>HAVE AN<br><span class="green">IDEA?</span></h2>
+    <p>Have a project or an interesting proposal? Get in touch.</p>
+    <a class="btn primary" href="mailto:contact@example.com">CONTACT US ↗</a>
+    <p>Replace contact@example.com with your real email.</p>
+   </div>
+  </section>
+ </main>
 
-  <div id="transitionFlash"></div>
+ <footer>
+  <a class="logo" href="#home">S<span class="green">/</span> SHUTCOCOMPANY</a>
+  <p>Created by Даниил Колбасенко и Владислав Четков.</p>
+  <p>© <span id="year"></span> SHUTCOCOMPANY</p>
+  <a class="green" href="#home">BACK TO TOP ↑</a>
+ </footer>
+</div>
 
-  <div id="modernSite" class="modern-site" aria-hidden="true">
-    <canvas id="networkCanvas"></canvas>
+<div id="notice" role="status"></div>
 
-    <header class="site-header">
-      <a class="brand" href="#home" aria-label="ShutcoCompany home">
-        <span class="brand-icon">S<span>/</span></span>
-        <span>SHUTCO<span class="green">COMPANY</span></span>
-      </a>
+<script>
+(() => {
+ "use strict";
 
-      <button id="menuToggle" class="menu-toggle"
-        aria-label="Open navigation" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+ const $ = id => document.getElementById(id);
+ const intro = $("intro");
+ const orb = $("orb");
+ const hint = $("hint");
+ const layer = $("orbLayer");
+ const sound = $("sound");
+ const flash = $("flash");
+ const site = $("site");
+ const state = $("state");
+ const notice = $("notice");
+ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      <nav id="mainNav" class="main-nav">
-        <a href="#home">HOME</a>
-        <a href="#about">ABOUT</a>
-        <a href="#projects">PROJECTS</a>
-        <a href="#contact">CONTACT</a>
-      </nav>
-    </header>
+ let appeared = false;
+ let destroyed = false;
+ let dragging = false;
+ let startX = 0, startY = 0, offsetX = 0, offsetY = 0;
+ let orbX = innerWidth / 2, orbY = innerHeight / 2;
+ let networkFrame = 0;
+ let points = [];
 
-    <main>
-      <section id="home" class="hero section">
-        <div class="hero-copy">
-          <div class="eyebrow">
-            <span class="status-dot"></span>
-            INDEPENDENT DIGITAL COMPANY
-          </div>
+ $("year").textContent = new Date().getFullYear();
 
-          <h1>
-            WE BUILD<br>
-            <span class="outlined">UNUSUAL</span><br>
-            <span class="green">THINGS.</span>
-          </h1>
+ function showNotice(message) {
+  notice.textContent = message;
+  notice.style.display = "block";
+  setTimeout(() => notice.style.display = "none", 5000);
+ }
 
-          <p class="hero-description">
-            Ideas, experiments and digital projects.
-            We make the unexpected happen.
-          </p>
+ function positionOrb(x, y) {
+  orbX = x; orbY = y;
+  orb.style.left = x + "px";
+  orb.style.top = y + "px";
+  hint.style.left = x + "px";
+  hint.style.top = (y + 65) + "px";
+ }
 
-          <div class="hero-actions">
-            <a class="button button-primary" href="#projects">
-              EXPLORE PROJECTS <span>↗</span>
-            </a>
-            <a class="button button-quiet" href="#about">
-              WHO WE ARE
-            </a>
-          </div>
-        </div>
+ positionOrb(orbX, orbY);
 
-        <div class="hero-visual" aria-hidden="true">
-          <div class="visual-grid"></div>
-          <div class="visual-circle circle-outer"></div>
-          <div class="visual-circle circle-middle"></div>
-          <div class="visual-circle circle-inner"></div>
-          <div class="visual-core"></div>
-          <div class="visual-cross cross-one">+</div>
-          <div class="visual-cross cross-two">+</div>
-          <div class="visual-label label-top">SIGNAL DETECTED</div>
-          <div class="visual-label label-bottom">SC // 001</div>
-          <div class="visual-coordinate">42° 00' // UNKNOWN</div>
-        </div>
+ /*
+  * Fail-safe: this code is in the same HTML file.
+  * It does not depend on an external JavaScript or CSS file.
+  */
+ function revealOrb() {
+  if (appeared || destroyed) return;
+  appeared = true;
+  orb.classList.add("show");
+  hint.classList.add("show");
+  state.textContent = "ANOMALY DETECTED";
+ }
 
-        <div class="hero-bottom">
-          <span>INDEPENDENT BY DESIGN</span>
-          <span>SC-001 <span class="green">●</span> ONLINE</span>
-        </div>
-      </section>
+ // Normal delay: exactly 3000 ms after this script executes.
+ setTimeout(revealOrb, 3000);
 
-      <section id="about" class="section content-section">
-        <div class="section-label"><span>01</span> / ABOUT</div>
-        <div class="section-content">
-          <h2>NOT JUST<br><span class="green">ANOTHER</span> COMPANY.</h2>
-          <p>
-            ShutcoCompany is a space for digital experiments,
-            creative ideas and projects that don't follow the usual rules.
-          </p>
-          <p>
-            We explore, build and experiment — one project at a time.
-          </p>
-          <div class="data-line">
-            <span>STATUS</span><span class="green">ACTIVE</span>
-          </div>
-          <div class="data-line">
-            <span>OPERATING MODE</span><span>EXPERIMENTAL</span>
-          </div>
-        </div>
-      </section>
+ // If the tab was suspended in the background, reveal on return too.
+ document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && !appeared && !destroyed) revealOrb();
+ });
 
-      <section id="projects" class="section content-section projects-section">
-        <div class="section-label"><span>02</span> / PROJECTS</div>
-        <div class="section-content">
-          <h2>SELECTED<br><span class="green">WORK.</span></h2>
-          <div class="project-grid">
-            <article class="project-card">
-              <div class="project-number">PROJECT_001</div>
-              <div class="project-symbol">⌘</div>
-              <h3>Digital Experiments</h3>
-              <p>Small ideas. Unexpected results.</p>
-              <span class="project-status">ONGOING</span>
-            </article>
-            <article class="project-card">
-              <div class="project-number">PROJECT_002</div>
-              <div class="project-symbol">◈</div>
-              <h3>Creative Systems</h3>
-              <p>Interfaces and experiences beyond the ordinary.</p>
-              <span class="project-status">IN DEVELOPMENT</span>
-            </article>
-            <article class="project-card">
-              <div class="project-number">PROJECT_003</div>
-              <div class="project-symbol">⌬</div>
-              <h3>Future Projects</h3>
-              <p>The next experiment has yet to be revealed.</p>
-              <span class="project-status">CLASSIFIED*</span>
-            </article>
-          </div>
-          <p class="small-note">*A visual label, not a security classification.</p>
-        </div>
-      </section>
+ // Drag with mouse or touch.
+ orb.addEventListener("pointerdown", event => {
+  if (!appeared || destroyed) return;
+  event.preventDefault();
+  dragging = true;
+  startX = event.clientX;
+  startY = event.clientY;
+  offsetX = event.clientX - orbX;
+  offsetY = event.clientY - orbY;
+  orb.classList.add("dragging");
+  try { orb.setPointerCapture(event.pointerId); } catch (_) {}
+ });
 
-      <section id="contact" class="section contact-section">
-        <div class="section-label"><span>03</span> / CONTACT</div>
-        <div class="section-content">
-          <h2>HAVE AN<br><span class="green">IDEA?</span></h2>
-          <p>Have a project or an interesting proposal? Get in touch.</p>
-          <a class="button button-primary"
-             href="mailto:contact@shutco.company">
-            CONTACT US <span>↗</span>
-          </a>
-          <p class="contact-note">
-            Replace the example email in index.html with your real address.
-          </p>
-        </div>
-      </section>
-    </main>
+ orb.addEventListener("pointermove", event => {
+  if (!dragging || destroyed) return;
+  event.preventDefault();
+  positionOrb(event.clientX - offsetX, event.clientY - offsetY);
 
-    <footer class="site-footer">
-      <a class="brand footer-brand" href="#home">
-        <span class="brand-icon">S<span>/</span></span>
-        <span>SHUTCO<span class="green">COMPANY</span></span>
-      </a>
-      <p>Created by Даниил Колбасенко и Владислав Четков.</p>
-      <p>© <span id="currentYear"></span> SHUTCOCOMPANY</p>
-      <a href="#home" class="back-top">BACK TO TOP ↑</a>
-    </footer>
-  </div>
+  if (Math.hypot(event.clientX - startX, event.clientY - startY) > 55) {
+   destroyPage();
+  }
+ });
 
-  <div id="errorNotice" role="status" aria-live="polite"></div>
-</body>
-</html>
+ function stopDrag() {
+  dragging = false;
+  orb.classList.remove("dragging");
+ }
+
+ orb.addEventListener("pointerup", stopDrag);
+ orb.addEventListener("pointercancel", stopDrag);
+ orb.addEventListener("lostpointercapture", stopDrag);
+
+ // Random glitch bars around the orb.
+ function glitchLoop() {
+  if (destroyed) return;
+  if (appeared && Math.random() < .8) {
+   const bar = document.createElement("i");
+   const width = 12 + Math.random() * 65;
+   bar.style.cssText =
+    "position:fixed;z-index:9998;pointer-events:none;" +
+    "left:" + (orbX + (Math.random()-.5)*125) + "px;" +
+    "top:" + (orbY + (Math.random()-.5)*110) + "px;" +
+    "width:" + width + "px;height:" + (2+Math.random()*5) + "px;" +
+    "background:#63ff9a;box-shadow:0 0 10px #63ff9a;opacity:.8";
+   layer.appendChild(bar);
+   setTimeout(() => bar.remove(), 100 + Math.random()*150);
+  }
+  setTimeout(glitchLoop, 70 + Math.random()*100);
+ }
+ glitchLoop();
+
+ function makeFragments() {
+  const elements = [...intro.querySelectorAll(".browser > *")];
+  const pieces = [];
+  const size = innerWidth < 600 ? 34 : 45;
+  const colors = ["#fff","#c0c0c0","#eee","#008080","#000080","#168bd4"];
+
+  for (const element of elements) {
+   const rect = element.getBoundingClientRect();
+   if (!rect.width || !rect.height) continue;
+
+   for (let y = rect.top; y < rect.bottom; y += size) {
+    for (let x = rect.left; x < rect.right; x += size) {
+     const piece = document.createElement("div");
+     piece.className = "fragment";
+     piece.style.left = x + "px";
+     piece.style.top = y + "px";
+     piece.style.width = Math.min(size, rect.right-x) + "px";
+     piece.style.height = Math.min(size, rect.bottom-y) + "px";
+     piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+     piece.style.border = "1px solid #0002";
+     piece.style.setProperty("--dx", ((Math.random()-.5)*innerWidth*.8) + "px");
+     piece.style.setProperty("--dy", (innerHeight*(.7+Math.random())) + "px");
+     piece.style.setProperty("--rot", ((Math.random()-.5)*1000) + "deg");
+     piece.style.setProperty("--duration", (reduceMotion ? .15 : .9+Math.random()*1.1) + "s");
+     pieces.push(piece);
+    }
+   }
+  }
+
+  const batch = document.createDocumentFragment();
+  pieces.forEach(piece => batch.appendChild(piece));
+  document.body.appendChild(batch);
+  setTimeout(() => pieces.forEach(piece => piece.remove()), 2500);
+ }
+
+ function destroyPage() {
+  if (destroyed) return;
+  destroyed = true;
+  stopDrag();
+  state.textContent = "SYSTEM FAILURE";
+  hint.classList.remove("show");
+  orb.classList.remove("show");
+  layer.style.pointerEvents = "none";
+
+  // Sound is optional; a missing MP3 must not interrupt the transition.
+  try {
+   sound.currentTime = 0;
+   const result = sound.play();
+   if (result && result.catch) {
+    result.catch(() => showNotice("Звук не загрузился: проверь файл 2.mp3. Анимация продолжится."));
+   }
+  } catch (_) {}
+
+  flash.classList.remove("go");
+  void flash.offsetWidth;
+  flash.classList.add("go");
+
+  if (!reduceMotion) {
+   intro.animate([
+    {transform:"translate(0,0)"},
+    {transform:"translate(-7px,4px)"},
+    {transform:"translate(8px,-5px)"},
+    {transform:"translate(0,0)"}
+   ], {duration:180,iterations:3});
+  }
+
+  makeFragments();
+
+  setTimeout(() => {
+   intro.classList.add("gone");
+   orb.remove();
+   site.classList.add("show");
+   site.setAttribute("aria-hidden","false");
+   document.body.classList.remove("locked");
+   initNetwork();
+  }, reduceMotion ? 150 : 650);
+ }
+
+ // Mobile navigation.
+ const nav = $("nav");
+ $("menu").addEventListener("click", () => {
+  const open = nav.classList.toggle("open");
+  $("menu").setAttribute("aria-expanded", String(open));
+ });
+ nav.querySelectorAll("a").forEach(link => {
+  link.addEventListener("click", () => {
+   nav.classList.remove("open");
+   $("menu").setAttribute("aria-expanded","false");
+  });
+ });
+
+ // Animated connected particles.
+ const canvas = $("network");
+ const ctx = canvas.getContext("2d");
+ let cw = 0, ch = 0, dpr = 1;
+ let networkStarted = false;
+
+ function resizeNetwork() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  cw = innerWidth;
+  ch = Math.max(site.scrollHeight, innerHeight);
+  canvas.width = Math.round(cw*dpr);
+  canvas.height = Math.round(ch*dpr);
+  canvas.style.width = cw + "px";
+  canvas.style.height = ch + "px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  const count = Math.min(100, Math.max(30, Math.floor(cw*ch/18000)));
+  points = Array.from({length:count}, () => ({
+   x:Math.random()*cw, y:Math.random()*ch,
+   vx:(Math.random()-.5)*.35, vy:(Math.rando
